@@ -174,7 +174,13 @@ export default function Home() {
 
   const groupedByStatus = STATUSES.reduce(
     (acc, status) => {
-      acc[status] = (prospects ?? []).filter((p) => p.status === status);
+      const filtered = (prospects ?? []).filter((p) => p.status === status);
+      filtered.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      });
+      acc[status] = filtered;
       return acc;
     },
     {} as Record<string, Prospect[]>,

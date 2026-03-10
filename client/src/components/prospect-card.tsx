@@ -13,16 +13,9 @@ import {
 } from "@/components/ui/dialog";
 import { EditProspectForm } from "./edit-prospect-form";
 
-function formatDeadline(dateStr: string): string {
+function formatDate(dateStr: string): string {
   const date = new Date(dateStr + "T00:00:00");
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
-
-function daysAgo(dateStr: string): number {
-  const applied = new Date(dateStr + "T00:00:00");
-  const now = new Date();
-  const diffMs = now.getTime() - applied.getTime();
-  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 }
 
 function InterestIndicator({ level }: { level: string }) {
@@ -128,14 +121,14 @@ export function ProspectCard({ prospect }: { prospect: Prospect }) {
         {prospect.applicationDeadline && (
           <div className="flex items-center gap-1 text-xs text-muted-foreground" data-testid={`text-deadline-${prospect.id}`}>
             <CalendarClock className="w-3 h-3" />
-            <span>Deadline: {formatDeadline(prospect.applicationDeadline)}</span>
+            <span>Deadline: {formatDate(prospect.applicationDeadline)}</span>
           </div>
         )}
 
         {prospect.appliedDate && (
-          <div className="flex items-center gap-1 text-xs text-muted-foreground" data-testid={`text-applied-days-${prospect.id}`}>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground" data-testid={`text-applied-date-${prospect.id}`}>
             <Clock className="w-3 h-3" />
-            <span>Applied {daysAgo(prospect.appliedDate)} days ago</span>
+            <span>Applied: {formatDate(prospect.appliedDate)}</span>
           </div>
         )}
 
