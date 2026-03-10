@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import type { Prospect } from "@shared/schema";
 import { STATUSES } from "@shared/schema";
 import { ProspectCard } from "@/components/prospect-card";
@@ -22,6 +22,13 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  type DropResult,
+} from "@hello-pangea/dnd";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 const INTEREST_FILTER_OPTIONS = [
   { value: "All", label: "All" },
@@ -98,24 +105,50 @@ function KanbanColumn({
           </SelectContent>
         </Select>
       </div>
-      <div className="flex-1 overflow-y-auto px-2 py-2">
-        <div className="space-y-2">
-          {isLoading ? (
-            <>
-              <Skeleton className="h-28 rounded-md" />
-              <Skeleton className="h-20 rounded-md" />
-            </>
-          ) : filteredProspects.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center" data-testid={`empty-${statusSlug}`}>
-              <p className="text-xs text-muted-foreground">No prospects</p>
+      <Droppable droppableId={status}>
+        {(provided, snapshot) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className={`flex-1 overflow-y-auto px-2 py-2 transition-colors duration-150 ${
+              snapshot.isDraggingOver ? "bg-primary/5 rounded-b-md" : ""
+            }`}
+          >
+            <div className="space-y-2">
+              {isLoading ? (
+                <>
+                  <Skeleton className="h-28 rounded-md" />
+                  <Skeleton className="h-20 rounded-md" />
+                </>
+              ) : filteredProspects.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-center" data-testid={`empty-${statusSlug}`}>
+                  <p className="text-xs text-muted-foreground">No prospects</p>
+                </div>
+              ) : (
+                filteredProspects.map((prospect, index) => (
+                  <Draggable
+                    key={prospect.id}
+                    draggableId={String(prospect.id)}
+                    index={index}
+                  >
+                    {(dragProvided, dragSnapshot) => (
+                      <div
+                        ref={dragProvided.innerRef}
+                        {...dragProvided.draggableProps}
+                        {...dragProvided.dragHandleProps}
+                        className={`${dragSnapshot.isDragging ? "opacity-90 shadow-lg rounded-md" : ""}`}
+                      >
+                        <ProspectCard prospect={prospect} />
+                      </div>
+                    )}
+                  </Draggable>
+                ))
+              )}
+              {provided.placeholder}
             </div>
-          ) : (
-            filteredProspects.map((prospect) => (
-              <ProspectCard key={prospect.id} prospect={prospect} />
-            ))
-          )}
-        </div>
-      </div>
+          </div>
+        )}
+      </Droppable>
     </div>
   );
 }
@@ -127,6 +160,18 @@ export default function Home() {
     queryKey: ["/api/prospects"],
   });
 
+  const statusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      await apiRequest("PATCH", `/api/prospects/${id}`, { status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/prospects"] });
+    },
+    onError: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/prospects"] });
+    },
+  });
+
   const groupedByStatus = STATUSES.reduce(
     (acc, status) => {
       acc[status] = (prospects ?? []).filter((p) => p.status === status);
@@ -136,6 +181,25 @@ export default function Home() {
   );
 
   const totalCount = prospects?.length ?? 0;
+
+  function handleDragEnd(result: DropResult) {
+    const { destination, source, draggableId } = result;
+
+    if (!destination) return;
+    if (destination.droppableId === source.droppableId) return;
+
+    const prospectId = parseInt(draggableId, 10);
+    const newStatus = destination.droppableId;
+
+    queryClient.setQueryData<Prospect[]>(["/api/prospects"], (old) => {
+      if (!old) return old;
+      return old.map((p) =>
+        p.id === prospectId ? { ...p, status: newStatus } : p
+      );
+    });
+
+    statusMutation.mutate({ id: prospectId, status: newStatus });
+  }
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -173,18 +237,20 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-x-auto overflow-y-hidden">
-        <div className="flex gap-3 p-4 h-full min-w-max">
-          {STATUSES.map((status) => (
-            <KanbanColumn
-              key={status}
-              status={status}
-              prospects={groupedByStatus[status] || []}
-              isLoading={isLoading}
-            />
-          ))}
-        </div>
-      </main>
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <main className="flex-1 overflow-x-auto overflow-y-hidden">
+          <div className="flex gap-3 p-4 h-full min-w-max">
+            {STATUSES.map((status) => (
+              <KanbanColumn
+                key={status}
+                status={status}
+                prospects={groupedByStatus[status] || []}
+                isLoading={isLoading}
+              />
+            ))}
+          </div>
+        </main>
+      </DragDropContext>
     </div>
   );
 }

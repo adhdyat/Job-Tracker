@@ -1,4 +1,5 @@
-import { useForm } from "react-hook-form";
+import { useEffect } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertProspectSchema, STATUSES, INTEREST_LEVELS } from "@shared/schema";
 import type { InsertProspect } from "@shared/schema";
@@ -36,9 +37,20 @@ export function AddProspectForm({ onSuccess }: { onSuccess?: () => void }) {
       jobUrl: "",
       status: "Bookmarked",
       interestLevel: "Medium",
+      referralName: "",
+      interviewerName: "",
       notes: "",
     },
   });
+
+  const watchedStatus = useWatch({ control: form.control, name: "status" });
+  const showInterviewer = watchedStatus === "Phone Screen" || watchedStatus === "Interviewing";
+
+  useEffect(() => {
+    if (!showInterviewer) {
+      form.setValue("interviewerName", "");
+    }
+  }, [showInterviewer, form]);
 
   const mutation = useMutation({
     mutationFn: async (data: InsertProspect) => {
@@ -156,6 +168,46 @@ export function AddProspectForm({ onSuccess }: { onSuccess?: () => void }) {
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="referralName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Referral Name (optional)</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="e.g. Jane Smith"
+                  {...field}
+                  value={field.value ?? ""}
+                  data-testid="input-referral-name"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {showInterviewer && (
+          <FormField
+            control={form.control}
+            name="interviewerName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Interviewer Name (optional)</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="e.g. John Doe"
+                    {...field}
+                    value={field.value ?? ""}
+                    data-testid="input-interviewer-name"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <FormField
           control={form.control}
