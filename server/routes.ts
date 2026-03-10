@@ -38,6 +38,8 @@ export async function registerRoutes(
     if (body.companyName !== undefined) updates.companyName = body.companyName;
     if (body.roleTitle !== undefined) updates.roleTitle = body.roleTitle;
     if (body.jobUrl !== undefined) updates.jobUrl = body.jobUrl;
+    if (body.referralName !== undefined) updates.referralName = body.referralName;
+    if (body.interviewerName !== undefined) updates.interviewerName = body.interviewerName;
     if (body.notes !== undefined) updates.notes = body.notes;
 
     if (body.status !== undefined) {

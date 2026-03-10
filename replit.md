@@ -4,7 +4,7 @@ A Kanban-style job search tracker built with React, Express, and PostgreSQL. Pro
 
 ## Tech Stack
 
-- **Frontend**: React 18 (Vite), Tailwind CSS, shadcn/ui, TanStack React Query, wouter
+- **Frontend**: React 18 (Vite), Tailwind CSS, shadcn/ui, TanStack React Query, wouter, @hello-pangea/dnd
 - **Backend**: Express.js (TypeScript), Drizzle ORM, node-postgres
 - **Database**: PostgreSQL
 
@@ -20,7 +20,7 @@ server/
   prospect-helpers.ts         - Pure helper functions (getNextStatus, validateProspect, isTerminalStatus)
 client/src/
   App.tsx                     - Root component, routing, providers
-  pages/home.tsx              - Kanban board with 7 status columns
+  pages/home.tsx              - Kanban board with 7 status columns, per-column interest filter, drag-and-drop
   components/
     prospect-card.tsx         - Card component with edit/delete actions
     add-prospect-form.tsx     - Dialog form for creating prospects
@@ -30,7 +30,7 @@ client/src/
 
 ## Database
 
-Single `prospects` table: id, company_name, role_title, job_url, status, interest_level, notes, created_at.
+Single `prospects` table: id, company_name, role_title, job_url, status, interest_level, referral_name, interviewer_name, notes, created_at.
 
 - **Statuses**: Bookmarked, Applied, Phone Screen, Interviewing, Offer, Rejected, Withdrawn
 - **Interest levels**: High, Medium, Low
