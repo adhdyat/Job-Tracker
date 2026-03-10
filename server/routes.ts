@@ -17,7 +17,11 @@ export async function registerRoutes(
     if (!parsed.success) {
       return res.status(400).json({ message: parsed.error.errors.map((e) => e.message).join(", ") });
     }
-    const prospect = await storage.createProspect(parsed.data);
+    const data = { ...parsed.data };
+    if (data.status === "Applied" && !data.appliedDate) {
+      data.appliedDate = new Date().toISOString().split("T")[0];
+    }
+    const prospect = await storage.createProspect(data);
     res.status(201).json(prospect);
   });
 
@@ -39,6 +43,8 @@ export async function registerRoutes(
     if (body.roleTitle !== undefined) updates.roleTitle = body.roleTitle;
     if (body.jobUrl !== undefined) updates.jobUrl = body.jobUrl;
     if (body.targetSalary !== undefined) updates.targetSalary = body.targetSalary;
+    if (body.applicationDeadline !== undefined) updates.applicationDeadline = body.applicationDeadline;
+    if (body.thankYouSent !== undefined) updates.thankYouSent = body.thankYouSent;
     if (body.referralName !== undefined) updates.referralName = body.referralName;
     if (body.interviewerName !== undefined) updates.interviewerName = body.interviewerName;
     if (body.notes !== undefined) updates.notes = body.notes;
@@ -48,6 +54,9 @@ export async function registerRoutes(
         return res.status(400).json({ message: `Status must be one of: ${STATUSES.join(", ")}` });
       }
       updates.status = body.status;
+      if (body.status === "Applied" && !existing.appliedDate) {
+        updates.appliedDate = new Date().toISOString().split("T")[0];
+      }
     }
 
     if (body.interestLevel !== undefined || body.interest_level !== undefined) {

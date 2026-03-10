@@ -30,7 +30,7 @@ client/src/
 
 ## Database
 
-Single `prospects` table: id, company_name, role_title, job_url, status, interest_level, target_salary, referral_name, interviewer_name, notes, created_at.
+Single `prospects` table: id, company_name, role_title, job_url, status, interest_level, target_salary, application_deadline, applied_date, thank_you_sent, referral_name, interviewer_name, notes, created_at.
 
 - **Statuses**: Bookmarked, Applied, Phone Screen, Interviewing, Offer, Rejected, Withdrawn
 - **Interest levels**: High, Medium, Low

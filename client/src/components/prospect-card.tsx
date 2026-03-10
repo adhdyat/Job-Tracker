@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Prospect } from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Trash2, Pencil, Flame, ThumbsUp, Minus, UserRound, Users, DollarSign } from "lucide-react";
+import { ExternalLink, Trash2, Pencil, Flame, ThumbsUp, Minus, UserRound, Users, DollarSign, CalendarClock, Clock, CheckCircle2 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -12,6 +12,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { EditProspectForm } from "./edit-prospect-form";
+
+function formatDeadline(dateStr: string): string {
+  const date = new Date(dateStr + "T00:00:00");
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function daysAgo(dateStr: string): number {
+  const applied = new Date(dateStr + "T00:00:00");
+  const now = new Date();
+  const diffMs = now.getTime() - applied.getTime();
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+}
 
 function InterestIndicator({ level }: { level: string }) {
   switch (level) {
@@ -112,6 +124,27 @@ export function ProspectCard({ prospect }: { prospect: Prospect }) {
         <div className="flex items-center gap-1.5 flex-wrap">
           <InterestIndicator level={prospect.interestLevel} />
         </div>
+
+        {prospect.applicationDeadline && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground" data-testid={`text-deadline-${prospect.id}`}>
+            <CalendarClock className="w-3 h-3" />
+            <span>Deadline: {formatDeadline(prospect.applicationDeadline)}</span>
+          </div>
+        )}
+
+        {prospect.appliedDate && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground" data-testid={`text-applied-days-${prospect.id}`}>
+            <Clock className="w-3 h-3" />
+            <span>Applied {daysAgo(prospect.appliedDate)} days ago</span>
+          </div>
+        )}
+
+        {prospect.thankYouSent && (prospect.status === "Phone Screen" || prospect.status === "Interviewing") && (
+          <div className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium" data-testid={`text-thank-you-${prospect.id}`}>
+            <CheckCircle2 className="w-3 h-3" />
+            <span>Thank You Sent ✓</span>
+          </div>
+        )}
 
         {prospect.referralName && (
           <div className="flex items-center gap-1 text-xs text-muted-foreground" data-testid={`text-referral-${prospect.id}`}>
