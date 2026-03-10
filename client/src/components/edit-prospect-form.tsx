@@ -40,6 +40,7 @@ export function EditProspectForm({ prospect, onSuccess }: EditProspectFormProps)
       companyName: prospect.companyName,
       roleTitle: prospect.roleTitle,
       jobUrl: prospect.jobUrl ?? "",
+      targetSalary: prospect.targetSalary ?? "",
       status: prospect.status as InsertProspect["status"],
       interestLevel: prospect.interestLevel as InsertProspect["interestLevel"],
       referralName: prospect.referralName ?? "",
@@ -114,6 +115,25 @@ export function EditProspectForm({ prospect, onSuccess }: EditProspectFormProps)
                   {...field}
                   value={field.value ?? ""}
                   data-testid="input-edit-job-url"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="targetSalary"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Target Salary (optional)</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="$150,000"
+                  {...field}
+                  value={field.value ?? ""}
+                  data-testid="input-edit-target-salary"
                 />
               </FormControl>
               <FormMessage />
