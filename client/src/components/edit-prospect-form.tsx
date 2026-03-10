@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2 } from "lucide-react";
 
 interface EditProspectFormProps {
@@ -41,6 +42,8 @@ export function EditProspectForm({ prospect, onSuccess }: EditProspectFormProps)
       roleTitle: prospect.roleTitle,
       jobUrl: prospect.jobUrl ?? "",
       targetSalary: prospect.targetSalary ?? "",
+      applicationDeadline: prospect.applicationDeadline ?? "",
+      thankYouSent: prospect.thankYouSent ?? false,
       status: prospect.status as InsertProspect["status"],
       interestLevel: prospect.interestLevel as InsertProspect["interestLevel"],
       referralName: prospect.referralName ?? "",
@@ -212,6 +215,25 @@ export function EditProspectForm({ prospect, onSuccess }: EditProspectFormProps)
           )}
         />
 
+        <FormField
+          control={form.control}
+          name="applicationDeadline"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Application Deadline (optional)</FormLabel>
+              <FormControl>
+                <Input
+                  type="date"
+                  {...field}
+                  value={field.value ?? ""}
+                  data-testid="input-edit-application-deadline"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         {showInterviewer && (
           <FormField
             control={form.control}
@@ -228,6 +250,25 @@ export function EditProspectForm({ prospect, onSuccess }: EditProspectFormProps)
                   />
                 </FormControl>
                 <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {showInterviewer && (
+          <FormField
+            control={form.control}
+            name="thankYouSent"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center gap-2 space-y-0">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value ?? false}
+                    onCheckedChange={field.onChange}
+                    data-testid="checkbox-thank-you-sent"
+                  />
+                </FormControl>
+                <FormLabel className="text-sm font-normal">Thank You Sent</FormLabel>
               </FormItem>
             )}
           />

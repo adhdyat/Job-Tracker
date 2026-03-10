@@ -174,7 +174,13 @@ export default function Home() {
 
   const groupedByStatus = STATUSES.reduce(
     (acc, status) => {
-      acc[status] = (prospects ?? []).filter((p) => p.status === status);
+      const filtered = (prospects ?? []).filter((p) => p.status === status);
+      filtered.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      });
+      acc[status] = filtered;
       return acc;
     },
     {} as Record<string, Prospect[]>,
@@ -193,9 +199,14 @@ export default function Home() {
 
     queryClient.setQueryData<Prospect[]>(["/api/prospects"], (old) => {
       if (!old) return old;
-      return old.map((p) =>
-        p.id === prospectId ? { ...p, status: newStatus } : p
-      );
+      return old.map((p) => {
+        if (p.id !== prospectId) return p;
+        const updated = { ...p, status: newStatus };
+        if (newStatus === "Applied" && !p.appliedDate) {
+          updated.appliedDate = new Date().toISOString().split("T")[0];
+        }
+        return updated;
+      });
     });
 
     statusMutation.mutate({ id: prospectId, status: newStatus });
